@@ -9,8 +9,7 @@ import reactor.core.publisher.Mono;
 import reactor.netty.DisposableChannel;
 import reactor.netty.http.server.HttpServer;
 
-import static org.springframework.web.reactive.function.server.RequestPredicates.GET;
-import static org.springframework.web.reactive.function.server.RequestPredicates.accept;
+import static org.springframework.web.reactive.function.server.RequestPredicates.*;
 
 public class Application {
     public static void main(String[] args) {
@@ -24,19 +23,14 @@ public class Application {
 
     public static RouterFunction<ServerResponse> route() {
         return RouterFunctions
-                .route(GET("/world").and(accept(MediaType.APPLICATION_JSON)), Application::helloWorld)
-                .andRoute(GET("/earth").and(accept(MediaType.APPLICATION_JSON)), Application::helloEarth);
+                .route(GET("/{greeting}")
+                        .and(accept(MediaType.APPLICATION_JSON)),
+                        Application::hello);
     }
 
-    public static Mono<ServerResponse> helloWorld(ServerRequest request) {
+    public static Mono<ServerResponse> hello(ServerRequest request) {
         return ServerResponse.ok()
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(BodyInserters.fromValue("Hello, World"));
-    }
-
-    public static Mono<ServerResponse> helloEarth(ServerRequest request) {
-        return ServerResponse.ok()
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(BodyInserters.fromValue("Hello, Earth"));
+                .body(BodyInserters.fromValue(request.pathVariable("greeting") + ", " + request.queryParam("title").orElse("World")));
     }
 }
